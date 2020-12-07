@@ -1,0 +1,238 @@
+____________________________________________________________
+--Fog atmosphere
+game.lighting.FogEnd = 50
+game.lighting.FogStart = 10
+game.lighting.OutdoorAmbient = Color3.fromRGB(50, 30, 40)
+
+___________________________________________________________
+--Intermssion
+local seconds = game.Workspace.Time
+local ingame = game.Workspace.InGame.Value
+local Game = game.Workspace.Game.Position
+
+while true do
+	wait(1)
+	seconds.Value = seconds.Value - 1 
+	
+		
+if seconds.Value == 0 and ingame == 0 then 
+	local teleport = game.Players:GetChildren()
+	for i = 1, #teleport do
+	teleport[i].Character:MoveTo(Vector3.new(Game.X, Game.Y, Game.Z))
+_________________________________________________________________________  
+--Intermission clock
+while true do
+	script.Parent.Text = game.Workspace.Time.Value
+	wait(0.01)
+end
+__________________________________________________________________________--
+--Leaderstats
+game.Players.PlayerAdded:Connect(function(player)
+	local leaderstats = Instance.new("Folder")
+	leaderstats.Name = "leaderstats"
+	leaderstats.Parent = player 
+	
+	local cash= Instance.new("NumberValue")
+	cash.Name = "Cash"
+	cash.Value  = 10000
+	cash.Parent = leaderstats
+	
+	
+	local kills =  Instance.new("IntValue")
+	kills.Name = "Kills"
+	kills.Value = 0 
+	kills.Parent = leaderstats 
+	
+	local rank = Instance.new ("StringValue")
+	rank.Name ="Rank"
+	rank.Value="Scrawny Noob"
+	rank.Parent=leaderstats
+	
+end)
+
+______________________________________________________________________________
+--Open Shop
+script.Parent.MouseButton1Click:Connect(function()
+	script.Parent.Parent.Frame.Visible = true
+end)
+________________________________________________________________________________
+--Buy Shop Items 
+local frame = script.Parent
+local buy_1 = frame.buy1
+local buy_2 = frame.buy2
+local buy_3 = frame.buy3
+
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local remoteEvent = ReplicatedStorage:WaitForChild('BuyTool')
+
+local function buyTool1()
+	local tool = ReplicatedStorage.Shopitems.M4
+	remoteEvent:FireServer(tool)
+end
+
+local function buyTool2()
+	local tool = ReplicatedStorage.Shopitems.Rem
+	remoteEvent:FireServer(tool)
+end
+
+local function buyTool3()
+	local tool = ReplicatedStorage.Shopitems.Sniper
+	remoteEvent:FireServer(tool)
+end
+
+buy_1.MouseButton1Click:Connect(buyTool1)
+buy_2.MouseButton1Click:Connect(buyTool2)
+buy_3.MouseButton1Click:Connect(buyTool3)
+_____________________________________________________________________________________
+--Close Shop 
+script.Parent.MouseButton1Click:Connect(function()
+	script.Parent.Parent.Parent.Frame.Visible = false
+end)
+_________________________________________________________________________________
+--My Gun Code 
+script.Parent.DealDamage.OnServerEvent:Connect(function(player,Target,Damage)
+	Target.Zombie:TakeDamage(Damage)
+end)
+
+local maxAmmo = 10 
+local Ammo =maxAmmo
+local reload = false 
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local textLabel = playerGui:WaitForChild("AmmoDisplay"):FindFirstChild("AmmoText")
+
+script.Parent.Equipped:Connect(function(Mouse)
+	local function reload ()
+		reloading = true
+		wait(1)
+		Ammo = maxAmmo
+		reloading = false
+	end
+	script.Parent.Activated:Connect(function()
+		if Ammo > 0 and not reloading then 
+			Ammo = Ammo -1
+			script.Parent.GunShot:Play()
+			if Mouse.Target.Parent:FindFirstChild("Zombie")then 
+				script.Parent.DealDamage:FireServer(Mouse.Target.Parent,10000)
+			end
+		elseif reloading == false then 
+			reload()
+			script.Parent.GunShot:Stop()
+		end
+    
+___________________________________________________________________________________    
+--Kill Zombie with sword to get Cash 
+local Zombie = script.Parent.Zombie
+function Dead()
+	local tag = Zombie:FindFirstChild("creator")
+	if tag ~= nil then
+		if tag.Value ~= nil then
+			local leaderstats = tag.Value:FindFirstChild("leaderstats")
+			if leaderstats ~= nil then
+				leaderstats.Cash.Value = leaderstats.Cash.Value + 10 
+				script:Remove()
+			end
+		end
+	end
+end
+Zombie.Died:connect(Dead)
+ _________________________________________________________________________________
+ --Everything below not my code just "borrowed" in Roblox's Public Domain 
+
+-- Sword 
+--[[
+	Rewritten by ArceusInator  <------Roblox Username, could not find url of his profile (This means the person is banned)
+	
+	This script will run the sword code on the client if filtering is disabled
+--]]
+local Tool = script.Parent
+local Sword = require(Tool:WaitForChild'Sword')
+local GLib = require(Tool:WaitForChild'GLib')
+
+if not workspace.FilteringEnabled then
+	-- Run the sword code on the client
+	
+	Sword:Initialize()
+end
+
+Tool.Equipped:connect(function(mouse)
+	Tool.Handle.UnsheathSound:Play()
+	
+	mouse.Button1Down:connect(function()
+		GLib.FastSpawn(function() Sword:LocalAttack() end)
+		
+		if workspace.FilteringEnabled then
+			-- Send input info to the server
+			Tool.RemoteClick:FireServer()
+		else
+			-- Interpret it on the client
+			Sword:Attack()
+		end
+	end)
+end)
+Tool.Unequipped:connect(function()
+	Sword:Unequip()
+end)
+_______________________________________________________________________________________--
+--Zombie
+--https://www.roblox.com/users/1447295909/profile
+
+script.Parent.Name = " "
+
+local Figure = script.Parent
+local Head = Figure:WaitForChild("Head")
+local Humanoid = Figure:WaitForChild("Zombie")
+local regening = false
+
+local var = math.random(1,6)
+
+script.Parent.Zombie.Died:connect(function()
+	game.ReplicatedStorage.Values.zombiesAlive.Value = game.ReplicatedStorage.Values.zombiesAlive.Value - 1
+	math.randomseed(tick())
+	script.Disabled = true
+	math.random(1,6)
+		if var == 1 then
+			script.Parent.Head.Death1:Play()
+		end
+		if var == 2 then
+			script.Parent.Head.Death2:Play()
+		end
+		if var == 3 then
+			script.Parent.Head.Death3:Play()
+		end
+		if var == 4 then
+			script.Parent.Head.Death4:Play()
+		end
+		if var == 5 then
+			script.Parent.Head.Death5:Play()
+		end
+		if var == 6 then
+			script.Parent.Head.Death6:Play()
+		end
+	wait(1)
+	script.Parent:Destroy()
+	
+	
+end)
+_________________________________________________________
+--Zombie Spawner
+--https://www.youtube.com/watch?v=puNVBFGAxZY&t=62s&ab_channel=PizzaGuy1
+
+local CS = game:getService("CollectionService")
+
+while true do
+	wait(5)
+	for i, v in pairs(CS:GetTagged("spawner")) do
+		if game.ReplicatedStorage.Values.gameInProgress.Value == true then
+			if game.ReplicatedStorage.Values.zombiesRemaining.Value > 0 then
+				local NPC = game.ReplicatedStorage.Zombie:Clone()
+				NPC.Parent = v
+				NPC.HumanoidRootPart.CFrame = v.CFrame
+				CS:AddTag(NPC, "Zombie")
+				game.ReplicatedStorage.Values.zombiesRemaining.Value = game.ReplicatedStorage.Values.zombiesRemaining.Value - 1
+			end
+		end
+	end
+end
+____________________________________________________________
+
